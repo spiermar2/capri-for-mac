@@ -1,5 +1,83 @@
 import Foundation
 
+/// Presentation cleanup only; never generates, shortens, or changes the facts
+/// in a reply. The same result is displayed, spoken, and kept in chat context.
+enum CapriReplyText {
+    static func conversation(_ reply: String, userMessage: String) -> String {
+        // Literal-format requests must remain literal, even in the speech bubble.
+        if userMessage.range(of: #"(?i)\b(markdown|verbatim|literal|regex|regular expression|latex|exact text|exact wording|exactly as|unchanged|code|coding|script|programming|syntax|python|swift|javascript|typescript|html|css|sql|shell|terminal|math|calculate|evaluate|equation|formula|algebra|exponent)\b"#, options: .regularExpression) != nil {
+            return reply
+        }
+        var fence: (Character, Int)?
+        var mathBlock: String?
+        return reply.components(separatedBy: "\n").map { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if let active = fence {
+                let run = trimmed.prefix(while: { $0 == active.0 })
+                if run.count >= active.1, trimmed.dropFirst(run.count).trimmingCharacters(in: .whitespaces).isEmpty { fence = nil }
+                return line
+            }
+            if let active = mathBlock {
+                if trimmed.contains(active) { mathBlock = nil }
+                return line
+            }
+            if let first = trimmed.first, first == "`" || first == "~" {
+                let count = trimmed.prefix(while: { $0 == first }).count
+                if count >= 3 { fence = (first, count); return line }
+            }
+            if trimmed.hasPrefix("$$") {
+                if !trimmed.dropFirst(2).contains("$$") { mathBlock = "$$" }
+                return line
+            }
+            if trimmed.hasPrefix(#"\["#) {
+                if !trimmed.dropFirst(2).contains(#"\]"#) { mathBlock = #"\]"# }
+                return line
+            }
+            // Prefer leaving decoration visible over changing possible source
+            // code, including nested backtick runs and preprocessor directives.
+            if line.hasPrefix("    ") || line.hasPrefix("\t") || line.contains("`") { return line }
+            if trimmed.range(of: #"^#[ \t]*(include|define|undef|if|ifdef|ifndef|elif|else|endif|pragma|error|warning)\b"#, options: .regularExpression) != nil { return line }
+            return proseLine(line)
+        }.joined(separator: "\n")
+    }
+
+    private static func proseLine(_ line: String) -> String {
+        // Preserve inline code, link destinations, URLs and math byte-for-byte.
+        let protected = #"(`+)[^`]*?\1|!?\[[^\]\n]*\]\([^\n]*?\)|https?://[^\s<>]+|\$[^$\n]+\$|\\\([^\n]*?\\\)"#
+        guard let regex = try? NSRegularExpression(pattern: protected) else { return line }
+        var result = ""
+        var start = line.startIndex
+        for match in regex.matches(in: line, range: NSRange(line.startIndex..., in: line)) {
+            guard let range = Range(match.range, in: line) else { continue }
+            result += prose(String(line[start..<range.lowerBound]), allowHeading: start == line.startIndex)
+            result += line[range]
+            start = range.upperBound
+        }
+        result += prose(String(line[start...]), allowHeading: start == line.startIndex)
+        return result
+    }
+
+    private static func prose(_ text: String, allowHeading: Bool) -> String {
+        var result = text
+        if allowHeading {
+            result = result.replacingOccurrences(of: #"^ {0,3}#{1,6}[ \t]+(?=\S)"#, with: "", options: .regularExpression)
+        }
+        // Intentionally narrow: don't globally delete stars or underscores.
+        // Operators, identifiers, bullet markers and unmatched syntax survive.
+        let pattern = #"(?<![\p{L}\p{N}_*\\])\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*(?![\p{L}\p{N}_*])"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return result }
+        for match in regex.matches(in: result, range: NSRange(result.startIndex..., in: result)).reversed() {
+            guard let whole = Range(match.range, in: result), let inner = Range(match.range(at: 1), in: result) else { continue }
+            let value = String(result[inner])
+            // These may be exponent expressions rather than prose emphasis.
+            guard value.contains(where: \.isLetter),
+                  value.range(of: #"[+=/^<>]|\s-\s|\b(and|or|not|if|else|is|in)\b"#, options: .regularExpression) == nil else { continue }
+            result.replaceSubrange(whole, with: value)
+        }
+        return result
+    }
+}
+
 /// Narrow output checks for failures observed in local-model evaluation. This
 /// does not judge topics or rewrite content. Reasons are fixed repair directions.
 enum CapriReplyQuality {

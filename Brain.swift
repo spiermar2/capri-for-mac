@@ -87,7 +87,8 @@ final class CompanionBrain {
         }
         try Task.checkCancellation()
         guard currentGeneration == generation else { throw CancellationError() }
-        let trimmed = response.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = CapriReplyText.conversation(response, userMessage: prompt)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw BrainError("The local model returned an empty reply. Please try again.") }
         history += [Message(role: "user", content: prompt), Message(role: "assistant", content: trimmed)]
         let messageLimit = backend == .chatGPT ? 32 : 16

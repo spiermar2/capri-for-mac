@@ -4,8 +4,9 @@ import Foundation
 struct CapriReplyQualityTests {
     static func main() {
         var checks = 0
-        func expect(_ condition: Bool, _ label: String) {
-            precondition(condition, label); checks += 1; print("PASS \(label)")
+        func expect(_ condition: @autoclosure () -> Bool, _ label: String) {
+            let passed = condition()
+            precondition(passed, label); checks += 1; print("PASS \(label)")
         }
         func bad(_ text: String, previous: String? = nil) -> Bool {
             CapriReplyQuality.repairReason(for: text, previousReply: previous) != nil
@@ -38,6 +39,33 @@ struct CapriReplyQualityTests {
         expect(!bad("For your space game, use a quiet starfield behind a bright Start button. Keep the menu readable and save the busy motion for gameplay.", previous: previous), "new useful response may share topic words")
         let reason = CapriReplyQuality.repairReason(for: "Capri: private-user-content", previousReply: nil)!
         expect(reason.count < 160 && !reason.contains("private-user-content"), "repair direction is bounded authored text")
+        func spoken(_ text: String, prompt: String = "Tell me how to get that item") -> String {
+            CapriReplyText.conversation(text, userMessage: prompt)
+        }
+        let walkthrough = "The **Militech Canto Mk.6**—the cyberdeck with **Blackwall Gateway**.\n\n**Minor mission spoilers:**\n1. In **Firestarter**, choose your route."
+        expect(spoken(walkthrough) == "The Militech Canto Mk.6—the cyberdeck with Blackwall Gateway.\n\nMinor mission spoilers:\n1. In Firestarter, choose your route.", "screenshot formatting clears without losing words, steps or paragraph breaks")
+        expect(spoken("## The catch\n**A** matters.") == "The catch\nA matters.", "prose headings and single-letter emphasis become speech")
+        expect(spoken("2 ** 3; a**b + c**d; identifiers_with_underscores; __init__; C#; #if DEBUG") == "2 ** 3; a**b + c**d; identifiers_with_underscores; __init__; C#; #if DEBUG", "operators, identifiers and language syntax survive")
+        expect(spoken("Use `**exact**` and ``a ** b``. **Done.**") == "Use `**exact**` and ``a ** b``. **Done.**", "lines with inline code remain conservatively unchanged")
+        let nestedTicks = "Use ``**keep** ` nested`` then **clear**"
+        expect(spoken(nestedTicks) == nestedTicks, "nested inline backtick runs remain unchanged")
+        expect(spoken("2 **3 + 4** 5; a **b - c** d") == "2 **3 + 4** 5; a **b - c** d", "operator-like exponent expressions remain unchanged")
+        expect(spoken("# include <stdio.h>") == "# include <stdio.h>", "preprocessor directives remain unchanged")
+        expect(spoken("a **b** c", prompt: "Explain this Python code") == "a **b** c", "technical requests preserve ambiguous exponent syntax")
+        let code = "**Example:**\n````python\n# header\nvalue = '**literal**'\n```\n````\n**Done.**"
+        expect(spoken(code) == "Example:\n````python\n# header\nvalue = '**literal**'\n```\n````\nDone.", "fenced code including shorter interior fences is preserved")
+        expect(spoken("~~~\n**literal**\n~~~\n**Done.**") == "~~~\n**literal**\n~~~\nDone.", "tilde code fences are preserved")
+        expect(spoken("```swift\n**unfinished code") == "```swift\n**unfinished code", "unfinished code fence remains untouched")
+        expect(spoken("    **indented code**\n\t# code") == "    **indented code**\n\t# code", "indented code remains untouched")
+        let links = "[docs](https://example.com/a_b/**path**#frag) https://example.com/**path** **Read it.**"
+        expect(spoken(links) == "[docs](https://example.com/a_b/**path**#frag) https://example.com/**path** Read it.", "link and URL bytes survive")
+        let inlineMath = #"$a ** b$ and \(x ** y\). **Done.**"#
+        expect(spoken(inlineMath) == #"$a ** b$ and \(x ** y\). Done."#, "inline math survives")
+        expect(spoken("$$\na ** b\n$$\n**Done.**") == "$$\na ** b\n$$\nDone.", "multiline math survives")
+        expect(spoken("* Step one\n- Step two\n**unfinished\n\\**escaped**") == "* Step one\n- Step two\n**unfinished\n\\**escaped**", "bullets, unmatched and escaped markers survive")
+        for request in ["Show Markdown", "Copy this verbatim", "Keep the exact wording", "Explain this regex", "Give me the literal text", "Write LaTeX"] {
+            expect(spoken("## **Keep me**", prompt: request) == "## **Keep me**", "explicit literal formatting remains intact: \(request)")
+        }
         print("\(checks) reply-quality checks passed; no model calls")
     }
 }

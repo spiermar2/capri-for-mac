@@ -4,8 +4,9 @@ import Foundation
 struct CapriPersonaTests {
     static func main() {
         var checks = 0
-        func expect(_ condition: Bool, _ label: String) {
-            precondition(condition, label)
+        func expect(_ condition: @autoclosure () -> Bool, _ label: String) {
+            let passed = condition()
+            precondition(passed, label)
             checks += 1
             print("PASS \(label)")
         }
@@ -21,8 +22,28 @@ struct CapriPersonaTests {
         expect(state.guidance.contains("Current tone: challenged"), "disagreement selects composed challenge")
         state.receive("Help me debug this code")
         expect(state.guidance.contains("Current tone: focused") && state.responseTokenLimit == 360, "practical work gets focused space")
+        for request in [
+            "tell me how to get the canto mk6 in cyberpunk",
+            "How do I unlock this item?",
+            "How can I finish this mission?",
+            "Where can I find the crafting recipe?",
+            "Where should I buy an upgrade?",
+            "How do you reach the workshop?"
+        ] {
+            state.receive(request)
+            expect(state.guidance.contains("Current tone: focused") && state.responseTokenLimit == 360,
+                   "a natural how-to question receives room for complete help: \(request)")
+        }
+        state.receive("How are you?")
+        expect(state.guidance.contains("Current tone: playful") && state.responseTokenLimit == 160,
+               "a social how-question remains ordinary conversation")
+        state.receive("How come everyone likes this character?")
+        expect(state.guidance.contains("Current tone: curious"), "how come remains curiosity rather than task instructions")
         state.receive("Explain in detail, step by step")
         expect(state.responseTokenLimit == 700, "explicit detail gets a larger bounded budget")
+        state.receive("How do I unlock it? Keep it short, but step by step.")
+        expect(state.guidance.contains("Current tone: focused") && state.responseTokenLimit == 128,
+               "explicit brevity still wins for a detailed how-to request")
         state.receive("Keep it short: what is a variable?")
         expect(state.responseTokenLimit == 128, "explicit brevity overrides ordinary budget")
         state.receive("I'm overwhelmed. You're wrong and boring. Explain this in detail.")
@@ -30,7 +51,8 @@ struct CapriPersonaTests {
         expect(state.responseTokenLimit == 700, "support can still answer a detailed request")
         state.receive("thanks")
         expect(state.guidance.contains("Current tone: supportive"), "support persists through a short follow-up")
-        state.receive("okay")
+        state.receive("How do I fix this?")
+        expect(state.guidance.contains("Current tone: supportive"), "practical follow-up does not prematurely restore teasing")
         state.receive("What if we made a tiny game?")
         expect(state.guidance.contains("Current tone: curious"), "supportive hold expires without sticky distress state")
         state.receive("the villain in that movie is sad")
