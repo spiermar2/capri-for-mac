@@ -124,6 +124,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate, N
     var voiceKeyField: NSSecureTextField?
     var voiceIDField: NSTextField?
     var voiceStatus: NSTextField?
+    var voiceSpeedSlider: NSSlider?
+    var voiceSpeedValue: NSTextField?
     var shortcutStatus: NSTextField?
     var appearancePicker: NSPopUpButton?
     var interactionCheck: NSButton?
@@ -149,7 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate, N
     var conversationHasMessage = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        defaults.register(defaults: ["voice": true, "motion": true, "alwaysOnTop": true, "size": 1.0, "backend": "chatgpt", "chatGPTModel": "gpt-6.1-sol", "ollamaModel": "", "voiceProvider": "elevenlabs", "voiceID": "MkTSSXNgnBULS6ek4pon", "appearance": "star-screen", "windowInteractions": true])
+        defaults.register(defaults: ["voice": true, "motion": true, "alwaysOnTop": true, "size": 1.0, "backend": "chatgpt", "chatGPTModel": "gpt-6.1-sol", "ollamaModel": "", "voiceProvider": "elevenlabs", "voiceID": "MkTSSXNgnBULS6ek4pon", "voiceSpeed": ElevenLabsVoice.defaultSpeed, "appearance": "star-screen", "windowInteractions": true])
         if !CommandLine.arguments.contains("--render-preview"), !defaults.bool(forKey: "chatGPTDefaultV1") {
             defaults.set("chatgpt", forKey: "backend")
             defaults.set(true, forKey: "chatGPTDefaultV1")
@@ -188,6 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate, N
         voiceOn = defaults.bool(forKey: "voice")
         useCapriVoice = defaults.string(forKey: "voiceProvider") != "mac"
         capriVoice.voiceID = defaults.string(forKey: "voiceID") ?? "MkTSSXNgnBULS6ek4pon"
+        capriVoice.speed = defaults.double(forKey: "voiceSpeed")
         switch defaults.string(forKey: "backend") {
         case "apple": brain.backend = .apple
         case "ollama": brain.backend = .ollama
@@ -775,7 +778,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate, N
             let b = NSButton(title: title, target: self, action: action); b.bezelStyle = .rounded
             b.frame = NSRect(x: x, y: 351, width: width, height: 28); v.addSubview(b)
         }
-        addCheck(v, title: "Speak replies", y: 316, on: voiceOn, action: #selector(voiceChanged))
+        addCheck(v, title: "Speak replies", y: 316, on: voiceOn, action: #selector(voiceChanged), width: 165)
+        v.addSubview(label("Voice speed", frame: NSRect(x: 195, y: 318, width: 80, height: 20), size: 10))
+        let speed = NSSlider(value: capriVoice.speed, minValue: ElevenLabsVoice.speedRange.lowerBound,
+                             maxValue: ElevenLabsVoice.speedRange.upperBound, target: self, action: #selector(voiceSpeedChanged))
+        speed.frame = NSRect(x: 277, y: 316, width: 115, height: 24)
+        speed.isContinuous = true; speed.isEnabled = useCapriVoice
+        speed.setAccessibilityLabel("ElevenLabs voice speed")
+        speed.toolTip = "ElevenLabs speaking pace, from 0.70× to 1.20×. Applies to the next reply or Test voice."
+        voiceSpeedSlider = speed; v.addSubview(speed)
+        let speedValue = label(String(format: "%.2f×", capriVoice.speed), frame: NSRect(x: 398, y: 318, width: 48, height: 20), size: 10, color: useCapriVoice ? cyan : .secondaryLabelColor)
+        voiceSpeedValue = speedValue; v.addSubview(speedValue)
         addCheck(v, title: "Idle animations", y: 286, on: character.motionEnabled, action: #selector(motionChanged), width: 200)
         interactionCheck = addCheck(v, title: "Window interactions", y: 286, on: defaults.bool(forKey: "windowInteractions"), action: #selector(interactionsChanged), x: 254, width: 190)
         addCheck(v, title: "Always on top", y: 256, on: defaults.bool(forKey: "alwaysOnTop"), action: #selector(topChanged))
@@ -844,6 +857,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate, N
         voice.stopSpeaking(); capriVoice.stop(); useCapriVoice = sender.indexOfSelectedItem == 0
         defaults.set(useCapriVoice ? "elevenlabs" : "mac", forKey: "voiceProvider"); refreshVoiceStatus()
     }
+    @objc func voiceSpeedChanged(_ sender: NSSlider) {
+        capriVoice.speed = (sender.doubleValue * 100).rounded() / 100
+        sender.doubleValue = capriVoice.speed
+        defaults.set(capriVoice.speed, forKey: "voiceSpeed")
+        voiceSpeedValue?.stringValue = String(format: "%.2f×", capriVoice.speed)
+    }
     @objc func voiceIDChanged() {
         let value = voiceIDField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         capriVoice.voiceID = value.isEmpty ? "MkTSSXNgnBULS6ek4pon" : value
@@ -859,6 +878,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate, N
         catch { voiceStatus?.stringValue = error.localizedDescription }
     }
     func refreshVoiceStatus() {
+        voiceSpeedSlider?.isEnabled = useCapriVoice
+        voiceSpeedValue?.textColor = useCapriVoice ? cyan : .secondaryLabelColor
         voiceStatus?.stringValue = useCapriVoice ? (capriVoice.hasAPIKey ? "Key saved. Test the original Capri voice to check access." : "Original Capri voice selected. Add your ElevenLabs key to enable it.") : "Uses a built-in Mac voice. This is not Capri's original voice."
     }
     @objc func testVoice() {

@@ -8,6 +8,20 @@ import LocalAuthentication
 @MainActor
 final class ElevenLabsVoice: NSObject {
     static let originalVoiceID = "MkTSSXNgnBULS6ek4pon"
+    static let defaultSpeed = 1.18
+    static let speedRange = 0.7...1.2
+
+    private var storedSpeed = ElevenLabsVoice.defaultSpeed
+    /// Applies to the next synthesis request; changing pace never restarts audio.
+    var speed: Double {
+        get { storedSpeed }
+        set { storedSpeed = Self.normalizedSpeed(newValue) }
+    }
+
+    static func normalizedSpeed(_ value: Double) -> Double {
+        guard value.isFinite else { return defaultSpeed }
+        return min(speedRange.upperBound, max(speedRange.lowerBound, value))
+    }
 
     var voiceID = ElevenLabsVoice.originalVoiceID {
         didSet { if oldValue != voiceID { stop() } }
@@ -77,7 +91,7 @@ final class ElevenLabsVoice: NSObject {
         }
         let request: URLRequest
         do {
-            request = try Self.makeRequest(text: words, voiceID: voiceID, key: loadAPIKey())
+            request = try Self.makeRequest(text: words, voiceID: voiceID, key: loadAPIKey(), speed: speed)
         } catch {
             onError?(error.localizedDescription)
             return
@@ -238,7 +252,7 @@ final class ElevenLabsVoice: NSObject {
         VoiceFailure("macOS Keychain could not \(operation) the ElevenLabs key (status \(status)). Unlock your keychain or save the key again.")
     }
 
-    static func makeRequest(text: String, voiceID: String, key: String?) throws -> URLRequest {
+    static func makeRequest(text: String, voiceID: String, key: String?, speed: Double = defaultSpeed) throws -> URLRequest {
         // Validate again at the request boundary, including keys loaded from
         // older local stores. Never create an unauthenticated request or let
         // whitespace/control characters alter the authentication header.
@@ -264,7 +278,9 @@ final class ElevenLabsVoice: NSObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("audio/pcm, application/octet-stream", forHTTPHeaderField: "Accept")
         request.setValue(key, forHTTPHeaderField: "xi-api-key")
-        request.httpBody = try JSONEncoder().encode(SpeechBody(text: text, model_id: "eleven_multilingual_v2"))
+        request.httpBody = try JSONEncoder().encode(SpeechBody(
+            text: text, model_id: "eleven_multilingual_v2",
+            voice_settings: .init(speed: normalizedSpeed(speed))))
         return request
     }
 
@@ -326,6 +342,11 @@ final class ElevenLabsVoice: NSObject {
     private struct SpeechBody: Encodable {
         let text: String
         let model_id: String
+        let voice_settings: VoiceSettings
+    }
+
+    private struct VoiceSettings: Encodable {
+        let speed: Double
     }
 
     private struct VoiceFailure: LocalizedError {

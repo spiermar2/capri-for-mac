@@ -105,8 +105,9 @@ struct PCMStreamingAudioTests {
         let request = try ElevenLabsVoice.makeRequest(text: "Test only", voiceID: ElevenLabsVoice.originalVoiceID, key: "offline-placeholder")
         expect(request.url?.path.hasSuffix("/stream") == true && request.httpMethod == "POST", "voice uses the streaming POST endpoint")
         expect(URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems == [URLQueryItem(name: "output_format", value: "pcm_24000")], "request selects only PCM24k without deprecated latency options")
-        let body = try JSONSerialization.jsonObject(with: request.httpBody!) as! [String: String]
-        expect(body == ["text": "Test only", "model_id": "eleven_multilingual_v2"], "original voice model and input text remain unchanged")
+        let body = try JSONSerialization.jsonObject(with: request.httpBody!) as! [String: Any]
+        expect(body["text"] as? String == "Test only" && body["model_id"] as? String == "eleven_multilingual_v2", "original voice model and input text remain unchanged")
+        expect(body["voice_settings"] as? [String: Double] == ["speed": ElevenLabsVoice.defaultSpeed], "streaming request changes only the speaking pace")
         expect(request.value(forHTTPHeaderField: "xi-api-key") == "offline-placeholder", "test request uses only a synthetic credential")
 
         // Real AVAudioEngine/AVAudioPlayerNode with its volume at zero. This

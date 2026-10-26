@@ -18,6 +18,7 @@ run_test() {
 run_test ChatGPTAuthTests ChatGPTAuth.swift
 run_test ChatGPTClientTests ChatGPTAuth.swift ChatGPTClient.swift
 run_test CredentialIsolationTests ChatGPTAuth.swift ChatGPTClient.swift ElevenLabsVoice.swift PCMStreamingAudio.swift
+run_test ElevenLabsVoiceRequestTests ElevenLabsVoice.swift PCMStreamingAudio.swift
 run_test PCMStreamingAudioTests ElevenLabsVoice.swift PCMStreamingAudio.swift
 run_test CapriPersonaTests CapriPersona.swift
 run_test CapriReplyQualityTests CapriReplyQuality.swift

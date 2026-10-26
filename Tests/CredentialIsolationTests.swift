@@ -166,9 +166,9 @@ struct CredentialIsolationTests {
             let body = String(data: $0.httpBody ?? Data(), encoding: .utf8) ?? ""
             return !body.contains("synthetic-voice-key-") && !($0.url?.absoluteString ?? "").contains("synthetic-voice-key-")
         }, "voice credentials stay out of URL and request body")
-        let bodyA = try JSONSerialization.jsonObject(with: voiceA.httpBody!) as! [String: String]
-        let bodyB = try JSONSerialization.jsonObject(with: voiceB.httpBody!) as! [String: String]
-        expect(bodyA == bodyB, "changing voice accounts cannot inject credentials into speech text")
+        let bodyA = try JSONSerialization.jsonObject(with: voiceA.httpBody!) as! NSDictionary
+        let bodyB = try JSONSerialization.jsonObject(with: voiceB.httpBody!) as! NSDictionary
+        expect(bodyA.isEqual(bodyB), "changing voice accounts cannot inject credentials into speech text")
         print("\(checks) credential-isolation checks passed; transport intercepted; no Keychain or external network access")
     }
 }

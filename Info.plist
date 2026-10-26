@@ -1,18 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Capri for Mac</string>
-  <key>CFBundleDisplayName</key><string>Capri for Mac</string>
-  <key>CFBundleIdentifier</key><string>local.capri.maccompanion</string>
-  <key>CFBundleExecutable</key><string>Capri</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.5.4</string>
-  <key>CFBundleVersion</key><string>11</string>
-  <key>CFBundleIconFile</key><string>Capri</string>
-  <key>LSMinimumSystemVersion</key><string>26.0</string>
-  <key>LSUIElement</key><true/>
-  <key>NSHighResolutionCapable</key><true/>
-  <key>NSMicrophoneUsageDescription</key><string>Capri uses your microphone only when you click the mic to dictate a message. Review it before sending.</string>
-  <key>NSSpeechRecognitionUsageDescription</key><string>Capri converts your speech to a draft message using on-device recognition.</string>
-  <key>NSHumanReadableCopyright</key><string>Unofficial Mac adaptation. Capri sprites and show artwork remain with their respective owners. See the included artwork credits.</string>
-</dict></plist>
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>Capri for Mac</string>
+	<key>CFBundleDisplayName</key>
+	<string>Capri for Mac</string>
+	<key>CFBundleIdentifier</key>
+	<string>local.capri.maccompanion</string>
+	<key>CFBundleExecutable</key>
+	<string>Capri</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.5.5</string>
+	<key>CFBundleVersion</key>
+	<string>12</string>
+	<key>CFBundleIconFile</key>
+	<string>Capri</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>26.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Capri uses your microphone only when you click the mic to dictate a message. Review it before sending.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Capri converts your speech to a draft message using on-device recognition.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Unofficial personal Mac adaptation. Capri sprites and show artwork remain with their respective owners. See the included artwork credits.</string>
+</dict>
+</plist>

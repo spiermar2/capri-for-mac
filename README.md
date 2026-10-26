@@ -28,14 +28,15 @@ Capri hangs out as a small star until you summon her. Tap **right Command** to o
 | --- | --- |
 | **Star + screen** | A compact star opens into an animated portrait and chat window. |
 | **Idle reactions** | Local glances, grins and gestures while Capri is waiting. No AI or voice credits used. |
-| **Chat and voice** | Capri-inspired conversation, including practical answers, with your own ChatGPT account and optional streaming ElevenLabs speech. |
+| **Chat and voice** | Capri speaks as your cyberdeck's AI, with conversational answers and optional streaming ElevenLabs speech. |
+| **Voice speed** | A brisk 1.18× default, with a saved slider to set your own speaking pace. |
 | **Full-body mode** | Drag Capri around, double-click to pat her, or let her perch on a window edge. |
 
 > **Your accounts, your usage.** Each person connects their own ChatGPT account and ElevenLabs key. The app includes no shared credentials or maintainer-funded service. Your requests use your accounts' allowance or credits.
 
 ## Download and open
 
-1. Go to [the latest release](https://github.com/spiermar2/capri-for-mac/releases/latest) and download **Capri-for-Mac-v0.5.4-arm64.zip** under **Assets**.
+1. Go to [the latest release](https://github.com/spiermar2/capri-for-mac/releases/latest) and download **Capri-for-Mac-v0.5.5-arm64.zip** under **Assets**.
 2. Unzip it and move **Capri for Mac.app** into **Applications**. Keep one installed copy.
 3. Open Capri. Right-click her or use the menu-bar icon to reach **Settings**.
 
@@ -78,6 +79,8 @@ Create a voice you like in your own ElevenLabs account, then connect it to Capri
 3. Open **Developers → API Keys** and create your own key with **Text to Speech** access. Use only the permissions you need; you can set a credit limit. [API-key guide](https://elevenlabs.io/docs/help-center/technical/how-do-i-authorize-myself-using-an-api-key)
 4. In Capri's **Settings → VOICE**, select **Capri · ElevenLabs**. Paste the key into the secure field, click **Save key**, and enter your **Voice ID**.
 5. Click **Test voice**, then enable **Speak replies**.
+
+Adjust **Voice speed** beside **Speak replies** to change her pace. ElevenLabs starts at **1.18×**; the slider ranges from **0.70× to 1.20×**, saves on your Mac, and applies to the next reply or voice test. It doesn't change the selected voice. The slider is disabled when using **Mac system voice**.
 
 <details>
 <summary><strong>Copy the Voice Design prompt</strong></summary>
