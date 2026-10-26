@@ -1,0 +1,38 @@
+Capri screen artwork provenance
+===============================
+
+portrait.gif is the unchanged native 498 x 281, 163-frame public Tenor GIF:
+https://tenor.com/view/cyberpunk-capri-cyberpunk-capri-edgerunners-2-edgerunners-2-gif-5774155399214368565
+
+The default portrait and speaking loop use original frames 156 through 162.
+These match the winking face, raised black hand, hair spikes, and mouth poses
+in the supplied reference clip. Frames 156-158 have the mouth closed; 159-162 have it open.
+Frame delays are 0.03, 0.04, 0.03, 0.03, 0.04, 0.03, 0.03 seconds (0.23 total).
+Short greeting, playful, and arrival reactions use original frames 128-162,
+which move from an upright hand gesture through a brief green glitch streak
+and finish in the matching wink pose. Frames before 128 are never displayed.
+
+The matching portrait inside the supplied video is about 256 x 138 pixels;
+this clean source is 498 x 281. No cursor, TikTok text, scanline overlay, AI
+redraw, sharpening, or upscaling is included in the bundled artwork.
+The app scales the native source to its window when displayed.
+
+Native PNG fallback frames extracted with ImageIO, without cropping/rotation:
+portrait-idle.png, portrait-blink.png: original frame 156 (closed mouth).
+portrait-talk.png, portrait-grin.png, portrait-laugh.png: original frame 160.
+The source pose holds a wink; no full blink is invented. The blink/laugh file
+names are retained for compatibility, not claims of distinct animations.
+
+The additional unused expression cutins are preserved from:
+https://github.com/mochiiwuff/capri-desktop
+Revision: efe1cb5e3817c6ea0a97c73a83d6e17e8ece65d1
+Their upstream README excludes show-derived artwork from its code license.
+
+The original standing sprites and font are preserved unchanged from:
+https://github.com/lachydotmcg/capri-desktop
+Revision: d2876694bce524e37d89ea1bb043f34e431486e5
+The Share Tech Mono font license remains in ../fonts/OFL-ShareTechMono.txt.
+
+All character artwork remains with its respective rights holders. Public
+availability is not a claim of an open artwork license. This is an unofficial
+personal Mac adaptation. File hashes are recorded in ../SHA256SUMS.txt.

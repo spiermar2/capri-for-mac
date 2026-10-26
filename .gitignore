@@ -1,0 +1,45 @@
+# macOS and editor files
+.DS_Store
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Builds, exports and development artifacts
+.build/
+.build.noindex/
+build/
+dist/
+DerivedData/
+*.app/
+*.dSYM/
+*.zip
+*.dmg
+*.pkg
+*.o
+*.swiftmodule
+*.swiftdoc
+*.swiftsourceinfo
+*.abi.json
+*.log
+work/
+outputs/
+
+# Never commit local credentials, sessions or machine settings
+.env
+.env.*
+!.env.example
+*credentials*.json
+*tokens*.json
+auth.json
+secrets/
+private/
+*.keychain
+*.keychain-db
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+*.provisionprofile
